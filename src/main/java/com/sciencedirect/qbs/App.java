@@ -3,6 +3,10 @@ package com.sciencedirect.qbs;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.neo4j.driver.v1.AuthTokens;
+import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.v1.Session;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.neo4j.driver.v1.Values.parameters;
 
 public class App {
     public static void main(String[] args) throws IOException {
@@ -44,20 +50,41 @@ public class App {
                 }
         );
 
+
+        final Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "password"));
+        final Session session = driver.session();
+
         countryBorders.forEach(
-                (k, v) -> System.out.println(String.format("CREATE (Country { name: '%s' })", k))
+                (k, v) ->
+                        session.run("CREATE (a:Country {name: {name}})", parameters("name", k))
         );
+
+
+        /*
+
+                StatementResult result = session.run("MATCH (a:Person) WHERE a.name = {name} " +
+                                             "RETURN a.name AS name, a.title AS title",
+                                             parameters("name", "Arthur"));
+        while (result.hasNext()) {
+            Record record = result.next();
+            System.out.println(record.get("title").asString() + " " + record.get("name").asString());
+        }
+
+
+
+         */
+
 
         countryBorders.forEach(
                 (k, v) -> {
                     // Iterate over each border
-                    v.forEach(
-                            border -> System.out.println(String.format("MATCH (a:Country),(b:Country)\n" +
-                                    "WHERE a.name = '%s' AND b.name = '%s'\n" +
-                                    "CREATE (a)-[r:BORDER]->(b)\n", k, border))
-                    );
+                    v.forEach(border -> session.run("MATCH (a:Country),(b:Country)\n" +
+                                                    "WHERE a.name = {aName} AND b.name = {bName}\n" +
+                                                    "CREATE (a)-[r:Border]->(b)\n",
+                                                    parameters("aName", k, "bName", border)));
                 }
         );
+
 
 //        countryBorders.forEach(
 //                (k, v) -> System.out.println(k + " -> " + v)
@@ -78,6 +105,12 @@ public class App {
 //        for (int i = 0; i < 16; i++) {
 //            System.out.println(i + " " + countriesByCount[i]);
 //        }
+
+
+
+
+        session.close();
+        driver.close();
     }
 
 
