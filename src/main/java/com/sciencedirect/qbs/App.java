@@ -44,26 +44,40 @@ public class App {
                 }
         );
 
+        countryBorders.forEach(
+                (k, v) -> System.out.println(String.format("CREATE (Country { name: '%s' })", k))
+        );
+
+        countryBorders.forEach(
+                (k, v) -> {
+                    // Iterate over each border
+                    v.forEach(
+                            border -> System.out.println(String.format("MATCH (a:Country),(b:Country)\n" +
+                                    "WHERE a.name = '%s' AND b.name = '%s'\n" +
+                                    "CREATE (a)-[r:BORDER]->(b)\n", k, border))
+                    );
+                }
+        );
+
 //        countryBorders.forEach(
 //                (k, v) -> System.out.println(k + " -> " + v)
 //        );
 
 //        Map<Integer, List<String>> borderCountToCountries = new HashMap<>(15);
 
-        ArrayList[] countriesByCount = new ArrayList[16];
-        for (int i = 0; i < 16; i++) {
-            countriesByCount[i] = new ArrayList();
-        }
 
-        countryBorders.forEach(
-                (k, v) -> countriesByCount[v.size()].add(k)
-        );
-
-        for (int i = 0; i < 16; i++) {
-            System.out.println(i + " " + countriesByCount[i]);
-        }
-
-        System.out.println("Borders of Germany: " + countryBorders.get("Germany"));
+//        ArrayList[] countriesByCount = new ArrayList[16];
+//        for (int i = 0; i < 16; i++) {
+//            countriesByCount[i] = new ArrayList();
+//        }
+//
+//        countryBorders.forEach(
+//                (k, v) -> countriesByCount[v.size()].add(k)
+//        );
+//
+//        for (int i = 0; i < 16; i++) {
+//            System.out.println(i + " " + countriesByCount[i]);
+//        }
     }
 
 
